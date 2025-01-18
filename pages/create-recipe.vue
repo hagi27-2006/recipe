@@ -1,108 +1,106 @@
 <template>
   <div class="max-w-2xl mx-auto">
-    <h1 class="text-3xl font-bold mb-8">Create New Recipe</h1>
+    <h1 class="text-3xl font-bold text-gray-900 mb-8">{{ t('nav.createRecipe') }}</h1>
     
-    <form @submit.prevent="createRecipe" class="space-y-6">
+    <form @submit.prevent="createRecipe" class="bg-white rounded-xl shadow-sm p-6 space-y-6">
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
-          Recipe Title
+          {{ t('recipe.title') }}
         </label>
         <input
           v-model="recipe.title"
           type="text"
           required
-          class="w-full p-2 border rounded-md"
-          placeholder="Enter recipe title"
+          class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out"
+          :placeholder="t('recipe.title')"
         />
       </div>
 
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
-          Cuisine Type
+          {{ t('recipe.cuisine') }}
         </label>
         <select
           v-model="recipe.cuisine"
           required
-          class="w-full p-2 border rounded-md"
+          class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out"
         >
-          <option value="">Select Cuisine</option>
-          <option value="italian">Italian</option>
-          <option value="mexican">Mexican</option>
-          <option value="indian">Indian</option>
-          <option value="chinese">Chinese</option>
-          <option value="japanese">Japanese</option>
+          <option value="">{{ t('search.allCuisines') }}</option>
+          <option v-for="cuisine in cuisines" :key="cuisine" :value="cuisine">
+            {{ t(`search.cuisines.${cuisine}`) }}
+          </option>
         </select>
       </div>
 
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
-          Ingredients
+          {{ t('recipe.ingredients') }}
         </label>
         <div v-for="(ingredient, index) in recipe.ingredients" :key="index" class="flex gap-2 mb-2">
           <input
             v-model="recipe.ingredients[index]"
             type="text"
             required
-            class="flex-1 p-2 border rounded-md"
-            placeholder="Enter ingredient"
+            class="flex-1 px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out"
+            :placeholder="t('recipe.ingredients')"
           />
           <button
             type="button"
             @click="removeIngredient(index)"
-            class="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+            class="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md transition duration-150 ease-in-out"
             :disabled="recipe.ingredients.length <= 1"
           >
-            Remove
+            {{ t('recipe.removeIngredient') }}
           </button>
         </div>
         <button
           type="button"
           @click="addIngredient"
-          class="mt-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+          class="mt-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md transition duration-150 ease-in-out"
         >
-          Add Ingredient
+          {{ t('recipe.addIngredient') }}
         </button>
       </div>
 
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
-          Instructions
+          {{ t('recipe.instructions') }}
         </label>
         <textarea
           v-model="recipe.instructions"
           required
           rows="4"
-          class="w-full p-2 border rounded-md"
-          placeholder="Enter cooking instructions"
+          class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out"
+          :placeholder="t('recipe.instructions')"
         ></textarea>
       </div>
 
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
-          Image URL
+          {{ t('recipe.imageUrl') }}
         </label>
         <input
           v-model="recipe.imageUrl"
           type="url"
           required
-          class="w-full p-2 border rounded-md"
-          placeholder="Enter image URL"
+          class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out"
+          :placeholder="t('recipe.imageUrl')"
         />
       </div>
 
       <div class="flex justify-end gap-4">
         <NuxtLink
           to="/"
-          class="px-6 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
+          class="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-md transition duration-150 ease-in-out"
         >
-          Cancel
+          {{ t('common.cancel') }}
         </NuxtLink>
         <button
           type="submit"
-          class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition duration-150 ease-in-out"
           :disabled="loading"
         >
-          {{ loading ? 'Creating...' : 'Create Recipe' }}
+          {{ loading ? t('common.loading') : t('common.create') }}
         </button>
       </div>
     </form>
@@ -111,12 +109,24 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import type { Recipe } from '~/composables/useRecipes'
 
 const router = useRouter()
 const { addRecipe } = useRecipes()
 const { showNotification } = useNotification()
+const { t } = useTranslations()
 const loading = ref(false)
+
+const cuisines = [
+  'italian',
+  'mexican',
+  'indian',
+  'chinese',
+  'japanese',
+  'thai',
+  'mediterranean'
+]
 
 const recipe = ref<Omit<Recipe, 'id' | 'userId'>>({
   title: '',
@@ -140,11 +150,11 @@ const createRecipe = async () => {
   loading.value = true
   try {
     await addRecipe(recipe.value)
-    showNotification('Recipe created successfully!', 'success')
+    showNotification(t('recipe.createSuccess'), 'success')
     router.push('/saved-recipes')
   } catch (error) {
     console.error('Error creating recipe:', error)
-    showNotification('Failed to create recipe', 'error')
+    showNotification(t('recipe.createError'), 'error')
   } finally {
     loading.value = false
   }

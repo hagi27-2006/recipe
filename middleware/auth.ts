@@ -3,7 +3,7 @@ import { useAuth } from '~/composables/useAuth'
 export default defineNuxtRouteMiddleware((to) => {
   const { user, loading } = useAuth()
   
-  const protectedRoutes = ['/saved-recipes', '/create-recipe']
+  const protectedRoutes = ['/saved-recipes', '/create-recipe', '/my-recipes']
   
   // If loading, let the navigation happen and let the layout handle the loading state
   if (loading.value) {

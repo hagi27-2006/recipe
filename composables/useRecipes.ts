@@ -15,6 +15,7 @@ import { ref } from 'vue'
 export interface Recipe {
   id?: string
   title: string
+  titleLower?: string
   ingredients: string[]
   instructions: string
   cuisine: string
@@ -31,23 +32,25 @@ export const useRecipes = () => {
   const recipes = ref<Recipe[]>([])
   const savedRecipes = ref<Recipe[]>([])
 
-  const addRecipe = async (recipe: Omit<Recipe, 'id' | 'userId'>) => {
+  const addRecipe = async (recipe: Omit<Recipe, 'id' | 'userId' | 'titleLower'>) => {
     if (!user.value) throw new Error('User must be logged in')
+    if (!$firestore) throw new Error('Firestore not initialized')
     
     const recipeWithUser = {
       ...recipe,
+      titleLower: recipe.title.toLowerCase(),
       userId: user.value.uid,
       createdAt: Date.now()
     }
     
-    await addDoc(collection($firestore as Firestore, 'recipes'), recipeWithUser)
+    await addDoc(collection($firestore, 'recipes'), recipeWithUser)
   }
 
   const getSavedRecipes = async () => {
-    if (!user.value) return
+    if (!user.value || !$firestore) return
     
     const q = query(
-      collection($firestore as Firestore, 'recipes'),
+      collection($firestore, 'recipes'),
       where('userId', '==', user.value.uid),
       orderBy('createdAt', 'desc')
     )
@@ -60,8 +63,9 @@ export const useRecipes = () => {
   }
 
   const deleteRecipe = async (recipeId: string) => {
+    if (!$firestore) throw new Error('Firestore not initialized')
     try {
-      await deleteDoc(doc($firestore as Firestore, 'recipes', recipeId))
+      await deleteDoc(doc($firestore, 'recipes', recipeId))
       await getSavedRecipes()
       showNotification('Recipe deleted successfully', 'success')
     } catch (error) {
@@ -72,8 +76,9 @@ export const useRecipes = () => {
   }
 
   const updateRecipe = async (recipeId: string, updates: Partial<Recipe>) => {
+    if (!$firestore) throw new Error('Firestore not initialized')
     try {
-      await updateDoc(doc($firestore as Firestore, 'recipes', recipeId), updates)
+      await updateDoc(doc($firestore, 'recipes', recipeId), updates)
       await getSavedRecipes()
       showNotification('Recipe updated successfully', 'success')
     } catch (error) {

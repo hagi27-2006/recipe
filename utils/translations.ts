@@ -17,12 +17,19 @@ export const translations = {
       createRecipe: 'Жор үүсгэх',
       savedRecipes: 'Хадгалсан жорууд',
       signIn: 'Нэвтрэх',
-      signOut: 'Гарах'
+      signOut: 'Гарах',
+      myRecipes: 'Миний жорууд'
     },
     search: {
+      searchLabel: 'Хайх',
       placeholder: 'Жор хайх...',
+      filterByCuisine: 'Хоолны төрлөөр',
+      searchingFor: 'Хайлт',
+      clear: 'Арилгах',
+      clearAll: 'Бүгдийг арилгах',
       allCuisines: 'Бүх төрөл',
       sortBy: {
+        label: 'Эрэмбэлэх',
         newest: 'Шинэ эхэндээ',
         oldest: 'Хуучин эхэндээ',
         titleAsc: 'Нэрээр (А-Я)',
@@ -36,7 +43,8 @@ export const translations = {
         japanese: 'Япон',
         thai: 'Тайланд',
         mediterranean: 'Газрын дундад тэнгис'
-      }
+      },
+      indexBuilding: 'Хайлтын индекс бэлтгэгдэж байна. Хэдэн минутын дараа дахин оролдоно уу.'
     },
     recipe: {
       title: 'Жорын нэр',
@@ -57,7 +65,11 @@ export const translations = {
       notFound: 'Жор олдсонгүй',
       backToRecipes: 'Жорын жагсаалт руу буцах',
       deleteConfirm: 'Энэ жорыг устгахдаа итгэлтэй байна уу?',
-      viewFullRecipe: 'Дэлгэрэнгүй харах'
+      viewFullRecipe: 'Дэлгэрэнгүй харах',
+      deleteRecipe: 'Жор устгах',
+      error: 'Жор ачаалахад алдаа гарлаа',
+      noMyRecipes: 'Та одоогоор жор үүсгээгүй байна',
+      fetchError: 'Жорын жагсаалтыг ачаалахад алдаа гарлаа'
     }
   }
 }

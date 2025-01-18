@@ -5,8 +5,6 @@ import {
   where, 
   getDocs,
   orderBy,
-  startAt,
-  endAt,
   type Query,
   type DocumentData,
   type QueryDocumentSnapshot,
@@ -25,66 +23,104 @@ export const useRecipeSearch = () => {
   const recipes = ref<Recipe[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
+  const indexBuilding = ref(false)
 
   const buildQuery = (params: SearchParams) => {
     if (!$firestore) return null
 
-    let baseQuery: Query = collection($firestore as Firestore, 'recipes')
     const constraints: any[] = []
-    
-    // Add title search
-    if (params.query) {
-      const queryUpperBound = params.query + '\uf8ff'
-      constraints.push(
-        where('title', '>=', params.query),
-        where('title', '<=', queryUpperBound)
-      )
-    }
+    let baseQuery = collection($firestore as unknown as Firestore, 'recipes')
 
-    // Add cuisine filter
-    if (params.cuisine) {
-      constraints.push(where('cuisine', '==', params.cuisine))
-    }
+    try {
+      // Start with simple queries while indexes are building
+      if (params.cuisine) {
+        // Basic cuisine filter
+        constraints.push(where('cuisine', '==', params.cuisine))
+      } else {
+        // If no cuisine filter, we can still sort
+        switch (params.sort) {
+          case 'newest':
+            constraints.push(orderBy('createdAt', 'desc'))
+            break
+          case 'oldest':
+            constraints.push(orderBy('createdAt', 'asc'))
+            break
+          case 'title':
+            constraints.push(orderBy('titleLower', 'asc'))
+            break
+          case 'title-desc':
+            constraints.push(orderBy('titleLower', 'desc'))
+            break
+          default:
+            constraints.push(orderBy('createdAt', 'desc'))
+        }
+      }
 
-    // Add sorting
-    switch (params.sort) {
-      case 'newest':
-        constraints.push(orderBy('createdAt', 'desc'))
-        break
-      case 'oldest':
-        constraints.push(orderBy('createdAt', 'asc'))
-        break
-      case 'title':
-        constraints.push(orderBy('title', 'asc'))
-        break
-      case 'title-desc':
-        constraints.push(orderBy('title', 'desc'))
-        break
-      default:
-        constraints.push(orderBy('createdAt', 'desc'))
+      return query(baseQuery, ...constraints)
+    } catch (error) {
+      console.error('Error building query:', error)
+      // Fallback to basic query
+      return query(baseQuery)
     }
-
-    return query(baseQuery, ...constraints)
   }
 
   const searchRecipes = async (params: SearchParams) => {
-    if (!$firestore) return
-
     loading.value = true
     error.value = null
-
+    indexBuilding.value = false
+    
     try {
       const q = buildQuery(params)
-      if (!q) return
+      if (!q) {
+        recipes.value = []
+        return
+      }
 
       const snapshot = await getDocs(q)
-      recipes.value = snapshot.docs.map((doc: QueryDocumentSnapshot<DocumentData>) => ({
+      let results = snapshot.docs.map((doc: QueryDocumentSnapshot<DocumentData>) => ({
         id: doc.id,
         ...doc.data()
       })) as Recipe[]
-    } catch (err) {
+
+      // Apply filters in memory if needed
+      if (results.length > 0) {
+        // Filter by search query if exists
+        if (params.query) {
+          const searchTerm = params.query.toLowerCase()
+          results = results.filter(recipe => 
+            recipe.title.toLowerCase().includes(searchTerm)
+          )
+        }
+
+        // Apply sorting in memory if we couldn't do it in query
+        if (params.cuisine && params.sort) {
+          results.sort((a, b) => {
+            switch (params.sort) {
+              case 'newest':
+                return (b.createdAt || 0) - (a.createdAt || 0)
+              case 'oldest':
+                return (a.createdAt || 0) - (b.createdAt || 0)
+              case 'title':
+                return (a.titleLower ?? '').localeCompare(b.titleLower ?? '')
+              case 'title-desc':
+                return (b.titleLower ?? '').localeCompare(a.titleLower ?? '')
+              default:
+                return 0
+            }
+          })
+        }
+      }
+
+      recipes.value = results
+
+    } catch (err: any) {
       console.error('Error searching recipes:', err)
-      error.value = 'Failed to search recipes'
+      if (err?.message?.includes('index')) {
+        indexBuilding.value = true
+        error.value = 'Search index is being built. Please try again in a few minutes.'
+      } else {
+        error.value = 'Failed to search recipes'
+      }
       recipes.value = []
     } finally {
       loading.value = false
@@ -95,6 +131,7 @@ export const useRecipeSearch = () => {
     recipes,
     loading,
     error,
+    indexBuilding,
     searchRecipes
   }
 } 
