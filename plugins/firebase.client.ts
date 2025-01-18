@@ -16,6 +16,19 @@ export default defineNuxtPlugin(() => {
   }
 
   const config = useRuntimeConfig()
+  
+  // Validate required Firebase config
+  if (!config.public.firebaseApiKey) {
+    console.error('Firebase API key is missing')
+    return {
+      provide: {
+        firebase: null,
+        auth: null,
+        firestore: null
+      }
+    }
+  }
+
   const firebaseConfig: FirebaseOptions = {
     apiKey: config.public.firebaseApiKey,
     authDomain: config.public.firebaseAuthDomain,
@@ -26,16 +39,26 @@ export default defineNuxtPlugin(() => {
     measurementId: config.public.firebaseMeasurementId
   }
 
-  // Initialize Firebase only once
-  const app = initializeApp(firebaseConfig)
-  const auth = getAuth(app)
-  const firestore = getFirestore(app)
+  try {
+    const app = initializeApp(firebaseConfig)
+    const auth = getAuth(app)
+    const firestore = getFirestore(app)
 
-  return {
-    provide: {
-      firebase: app,
-      auth,
-      firestore
+    return {
+      provide: {
+        firebase: app,
+        auth,
+        firestore
+      }
+    }
+  } catch (error) {
+    console.error('Firebase initialization error:', error)
+    return {
+      provide: {
+        firebase: null,
+        auth: null,
+        firestore: null
+      }
     }
   }
 }) 
