@@ -1,9 +1,14 @@
 import { initializeApp } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
-import { getFirestore } from 'firebase/firestore'
+import { 
+  getFirestore, 
+  enableIndexedDbPersistence,
+  connectFirestoreEmulator,
+  type Firestore
+} from 'firebase/firestore'
 import type { FirebaseOptions } from 'firebase/app'
 
-export default defineNuxtPlugin(() => {
+export default defineNuxtPlugin(async () => {
   // Skip initialization on server
   if (process.server) {
     return {
@@ -18,8 +23,8 @@ export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig()
   
   // Validate required Firebase config
-  if (!config.public.firebaseApiKey) {
-    console.error('Firebase API key is missing')
+  if (!config.public.firebaseApiKey || !config.public.firebaseProjectId) {
+    console.error('Required Firebase configuration is missing')
     return {
       provide: {
         firebase: null,
@@ -40,9 +45,31 @@ export default defineNuxtPlugin(() => {
   }
 
   try {
+    // Initialize Firebase
     const app = initializeApp(firebaseConfig)
     const auth = getAuth(app)
     const firestore = getFirestore(app)
+
+    // Initialize Firestore settings
+    const initializeFirestore = async (db: Firestore) => {
+      try {
+        // Enable offline persistence with specific settings
+        await enableIndexedDbPersistence(db, {
+          synchronizeTabs: true
+        })
+      } catch (err) {
+        if (err instanceof Error) {
+          if (err.message.includes('multiple tabs')) {
+            console.log('Persistence already enabled in another tab')
+          } else {
+            console.error('Failed to enable persistence:', err)
+          }
+        }
+      }
+    }
+
+    // Initialize Firestore
+    await initializeFirestore(firestore)
 
     return {
       provide: {

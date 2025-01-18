@@ -30,6 +30,14 @@ export const useAuth = () => {
       await signInWithPopup($auth, provider)
     } catch (error) {
       console.error('Facebook sign in error:', error)
+      const { showNotification } = useNotification()
+      
+      if (error instanceof Error && error.message.includes('auth/unauthorized-domain')) {
+        showNotification('This domain is not authorized for sign-in. Please try again later.', 'error')
+      } else {
+        showNotification('Failed to sign in with Facebook. Please try again.', 'error')
+      }
+      
       throw error
     } finally {
       loading.value = false
