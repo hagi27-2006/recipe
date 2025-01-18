@@ -70,6 +70,26 @@ export const translations = {
       error: 'Жор ачаалахад алдаа гарлаа',
       noMyRecipes: 'Та одоогоор жор үүсгээгүй байна',
       fetchError: 'Жорын жагсаалтыг ачаалахад алдаа гарлаа'
+    },
+    auth: {
+      signIn: 'Нэвтрэх',
+      register: 'Бүртгүүлэх',
+      email: 'И-мэйл',
+      password: 'Нууц үг',
+      emailPlaceholder: 'И-мэйл хаягаа оруулна уу',
+      passwordPlaceholder: 'Нууц үгээ оруулна уу',
+      continueWithFacebook: 'Facebook-ээр нэвтрэх',
+      needAccount: 'Бүртгэл байхгүй юу? Бүртгүүлэх',
+      alreadyHaveAccount: 'Бүртгэлтэй юу? Нэвтрэх',
+      welcomeBack: 'Тавтай морил!',
+      createAccount: 'Шинэ бүртгэл үүсгэх',
+      orContinueWith: 'Эсвэл',
+      signInSuccess: 'Амжилттай нэвтэрлээ!',
+      signOutSuccess: 'Амжилттай гарлаа',
+      registrationSuccess: 'Бүртгэл амжилттай үүслээ!',
+      emailInUse: 'Энэ и-мэйл хаяг бүртгэлтэй байна',
+      invalidCredentials: 'И-мэйл эсвэл нууц үг буруу байна',
+      error: 'Алдаа гарлаа'
     }
   }
 }

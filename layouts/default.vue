@@ -36,13 +36,9 @@
                   {{ t('nav.signOut') }}
                 </button>
               </template>
-              <button 
-                v-else 
-                @click="signInWithFacebook"
-                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out"
-              >
-                {{ t('nav.signIn') }}
-              </button>
+              <template v-else>
+                <AuthForm />
+              </template>
             </template>
           </div>
         </div>
